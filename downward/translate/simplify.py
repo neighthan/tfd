@@ -31,21 +31,20 @@ class DomainTransitionGraph(object):
             reachable |= new_neighbors
             queue.extend(new_neighbors)
         return reachable
-        
+
     def dump(self):
-        print "SIZE", self.size
-        print "INIT", self.init
-        print "ARCS:"
+        print("SIZE", self.size)
+        print("INIT", self.init)
+        print("ARCS:")
         for source, destinations in sorted(self.arcs.items()):
             for destination in sorted(destinations):
-                print "  %d => %d" % (source, destination)
+                print("  %d => %d" % (source, destination))
 
 
 def build_dtgs(task):
     init_vals = task.init.values
     sizes = task.variables.ranges
-    dtgs = [DomainTransitionGraph(init, size)
-            for (init, size) in zip(init_vals, sizes)]
+    dtgs = [DomainTransitionGraph(init, size) for (init, size) in zip(init_vals, sizes)]
 
     def add_arc(var_no, pre_spec, post):
         if pre_spec == -1:
@@ -68,17 +67,20 @@ def build_dtgs(task):
 always_false = object()
 always_true = object()
 
+
 class Impossible(Exception):
     pass
+
 
 class DoesNothing(Exception):
     pass
 
+
 class VarValueRenaming(object):
     def __init__(self):
-        self.new_var_nos = []   # indexed by old var_no
-        self.new_values = []    # indexed by old var_no and old value
-        self.new_sizes = []     # indexed by new var_no
+        self.new_var_nos = []  # indexed by old var_no
+        self.new_values = []  # indexed by old var_no and old value
+        self.new_sizes = []  # indexed by new var_no
         self.new_var_count = 0
         self.num_removed_values = 0
 
@@ -97,11 +99,11 @@ class VarValueRenaming(object):
             new_values_for_var = []
             for value in range(old_domain_size):
                 if value in new_domain:
-                    new_values_for_var.append(new_value_counter.next())
+                    new_values_for_var.append(next(new_value_counter))
                 else:
                     self.num_removed_values += 1
                     new_values_for_var.append(always_false)
-            new_size = new_value_counter.next()
+            new_size = next(new_value_counter)
             assert new_size == len(new_domain)
 
             self.new_var_nos.append(self.new_var_count)
@@ -149,11 +151,11 @@ class VarValueRenaming(object):
                 new_operators.append(op)
             except (Impossible, DoesNothing):
                 if DEBUG:
-                    print "Removed operator: %s" % op.name
+                    print("Removed operator: %s" % op.name)
         operators[:] = new_operators
 
     def apply_to_axioms(self, axioms):
-        print axioms
+        print(axioms)
         new_axioms = []
         for axiom in axioms:
             try:
@@ -161,7 +163,7 @@ class VarValueRenaming(object):
                 new_axioms.append(axiom)
             except (Impossible, DoesNothing):
                 if DEBUG:
-                    print "Removed axiom:"
+                    print("Removed axiom:")
                     axiom.dump()
         axioms[:] = new_axioms
 
@@ -195,7 +197,8 @@ class VarValueRenaming(object):
             raise DoesNothing
         axiom.effect = new_var, new_value
 
-    def translate_pre_post(self, (var_no, pre, post, cond)):
+    def translate_pre_post(self, xxx_todo_changeme):
+        (var_no, pre, post, cond) = xxx_todo_changeme
         new_var_no, new_post = self.translate_pair((var_no, post))
         if pre == -1:
             new_pre = -1
@@ -216,7 +219,8 @@ class VarValueRenaming(object):
             raise DoesNothing
         return new_var_no, new_pre, new_post, cond
 
-    def translate_pair(self, (var_no, value)):
+    def translate_pair(self, xxx_todo_changeme1):
+        (var_no, value) = xxx_todo_changeme1
         new_var_no = self.new_var_nos[var_no]
         new_value = self.new_values[var_no][value]
         return new_var_no, new_value
@@ -239,10 +243,10 @@ class VarValueRenaming(object):
                 new_var_no, new_value = self.translate_pair((var_no, value))
                 if new_value is always_true:
                     if DEBUG:
-                        print "Removed true proposition: %s" % value_name
+                        print("Removed true proposition: %s" % value_name)
                 elif new_value is always_false:
                     if DEBUG:
-                        print "Removed false proposition: %s" % value_name
+                        print("Removed false proposition: %s" % value_name)
                 else:
                     new_key[new_var_no][new_value] = value_name
         assert all((None not in value_names) for value_names in new_key)
@@ -254,13 +258,12 @@ class VarValueRenaming(object):
             new_group = []
             for var, val, name in group:
                 new_var_no, new_value = self.translate_pair((var, val))
-                if (new_value is not always_true and
-                    new_value is not always_false):
+                if new_value is not always_true and new_value is not always_false:
                     new_group.append((new_var_no, new_value, name))
             if len(new_group) > 0:
                 new_key.append(new_group)
         mutex_key[:] = new_key
-        
+
 
 def build_renaming(dtgs):
     renaming = VarValueRenaming()
@@ -271,23 +274,24 @@ def build_renaming(dtgs):
 
 def dump_translation_key(translation_key):
     for var_no, values in enumerate(translation_key):
-        print "var %d:" % var_no
+        print("var %d:" % var_no)
         for value_no, value in enumerate(values):
-            print "%2d: %s" % (value_no, value)
+            print("%2d: %s" % (value_no, value))
+
 
 def filter_unreachable_propositions(sas_task, mutex_key, translation_key):
-    print "**sas_task"
+    print("**sas_task")
     sas_task.output(sys.stdout)
-    print "Detecting unreachable propositions...",
+    print("Detecting unreachable propositions...", end=" ")
     sys.stdout.flush()
     if DEBUG:
-        print
+        print()
 
     # This procedure is a bit of an afterthought, and doesn't fit the
     # overall architecture of the translator too well. We filter away
     # unreachable propositions here, and then prune away variables
     # with only one value left.
-    # 
+    #
     # Examples of things that are filtered away:
     # - Constant propositions that are not detected in instantiate.py
     #   because it only reasons at the predicate level, and some
@@ -310,57 +314,59 @@ def filter_unreachable_propositions(sas_task, mutex_key, translation_key):
     renaming.apply_to_task(sas_task)
     renaming.apply_to_translation_key(translation_key)
     renaming.apply_to_mutex_key(mutex_key)
-    print "%d propositions removed." % renaming.num_removed_values
+    print("%d propositions removed." % renaming.num_removed_values)
+
 
 def constrain_end_effect_conditions(sas_task):
-    pre_by_operator_and_var = dict(); 
-    start_eff_by_operator_and_var = dict(); 
-    var_to_influencing_ops = dict();
-    interesting = dict(); ## var->list<op> operators for which the effect
-                          ## condition could possibly be constrained
+    pre_by_operator_and_var = dict()
+    start_eff_by_operator_and_var = dict()
+    var_to_influencing_ops = dict()
+    interesting = dict()
+    ## var->list<op> operators for which the effect
+    ## condition could possibly be constrained
     for op in sas_task.temp_operators:
-         start_prevail = op.prevail[0]
-         for var, val in start_prevail:
-             pre_by_operator_and_var[(op,var)] = val 
-         pre_post = op.pre_post
-         start_eff = dict()
-         for var, pre, post, cond in pre_post[0]:
-            pre_by_operator_and_var[(op,var)] = pre
-            if cond == [[],[],[]]:
+        start_prevail = op.prevail[0]
+        for var, val in start_prevail:
+            pre_by_operator_and_var[(op, var)] = val
+        pre_post = op.pre_post
+        start_eff = dict()
+        for var, pre, post, cond in pre_post[0]:
+            pre_by_operator_and_var[(op, var)] = pre
+            if cond == [[], [], []]:
                 start_eff[var] = post
-                start_eff_by_operator_and_var[(op,var)] = post 
-            var_to_influencing_ops.setdefault(var,set()).add(op)
-         for var, pre, post, cond in pre_post[1]:
-            var_to_influencing_ops.setdefault(var,set()).add(op)
+                start_eff_by_operator_and_var[(op, var)] = post
+            var_to_influencing_ops.setdefault(var, set()).add(op)
+        for var, pre, post, cond in pre_post[1]:
+            var_to_influencing_ops.setdefault(var, set()).add(op)
             if pre == -1:
-               start_val = start_eff.get(var, None)
-               if start_val is not None:
-                  interesting.setdefault(var,[]).append(op)
+                start_val = start_eff.get(var, None)
+                if start_val is not None:
+                    interesting.setdefault(var, []).append(op)
 
     variables_to_change = dict()
-    for var in interesting.iterkeys():
+    for var in interesting.keys():
         influencing = var_to_influencing_ops[var]
         var_is_candidate = True
         for op1 in influencing:
             if not var_is_candidate:
                 break
-            for op2 in influencing: ## check that op2 cannot be started while 
-                                    ## op1 is running
-                cond2 = pre_by_operator_and_var.get((op2,var), None)
-                start_eff1 = start_eff_by_operator_and_var.get((op1,var), None)
+            for op2 in influencing:  ## check that op2 cannot be started while
+                ## op1 is running
+                cond2 = pre_by_operator_and_var.get((op2, var), None)
+                start_eff1 = start_eff_by_operator_and_var.get((op1, var), None)
                 if None in (cond2, start_eff1) or start_eff1 == cond2:
                     var_is_candidate = False
                     break
         if var_is_candidate:
             for op in interesting[var]:
-                variables_to_change.setdefault(op,set()).add(var)
+                variables_to_change.setdefault(op, set()).add(var)
 
     nr_changed = 0
-    for op, vars in variables_to_change.iteritems():
+    for op, vars in variables_to_change.items():
         for index, (var, pre, post, cond) in enumerate(op.pre_post[1]):
             if var in vars and pre == -1:
-                new_pre = start_eff_by_operator_and_var[(op,var)]
-                op.pre_post[1][index] = (var, new_pre , post, cond)
+                new_pre = start_eff_by_operator_and_var[(op, var)]
+                op.pre_post[1][index] = (var, new_pre, post, cond)
                 nr_changed += 1
 
-    print "constrained %s conditions" % nr_changed
+    print("constrained %s conditions" % nr_changed)

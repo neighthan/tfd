@@ -18,20 +18,21 @@ class Timer(object):
     def __str__(self):
         return "[%.3fs CPU, %.3fs wall-clock]" % (
             self._clock() - self.start_clock,
-            time.time() - self.start_time)
+            time.time() - self.start_time,
+        )
 
 
 @contextlib.contextmanager
 def timing(text, block=False):
     timer = Timer()
     if block:
-        print "%s..." % text
+        print("%s..." % text)
     else:
-        print "%s..." % text,
+        print("%s..." % text, end=" ")
     sys.stdout.flush()
     yield
     if block:
-        print "%s: %s" % (text, timer)
+        print("%s: %s" % (text, timer))
     else:
-        print timer
+        print(timer)
     sys.stdout.flush()

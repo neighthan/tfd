@@ -13,7 +13,7 @@ def main():
 			redirections["stdin"] = open(input)
 		if output:
 			redirections["stdout"] = open(output, "w")
-		print args, redirections
+		print(args, redirections)
 		subprocess.check_call(sum([arg.split("+") for arg in args],[]), **redirections)
 
 	config, domain, problem, result_name = sys.argv[1:]

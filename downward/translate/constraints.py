@@ -4,6 +4,7 @@ import itertools
 
 import pddl
 
+
 class NegativeClause(object):
     # disjunction of inequalities
     def __init__(self, parts):
@@ -11,8 +12,7 @@ class NegativeClause(object):
         assert len(parts)
 
     def __str__(self):
-        disj = " or ".join(["(%s != %s)" % (v1, v2) 
-                            for (v1, v2) in self.parts])
+        disj = " or ".join(["(%s != %s)" % (v1, v2) for (v1, v2) in self.parts])
         return "(%s)" % disj
 
     def is_satisfiable(self):
@@ -37,10 +37,9 @@ class Assignment(object):
         self.eq_classes = None
 
     def __str__(self):
-        conj = " and ".join(["(%s = %s)" % (v1, v2) 
-                            for (v1, v2) in self.equalities])
+        conj = " and ".join(["(%s = %s)" % (v1, v2) for (v1, v2) in self.equalities])
         return "(%s)" % conj
-    
+
     def _compute_equivalence_classes(self):
         eq_classes = {}
         for (v1, v2) in self.equalities:
@@ -53,7 +52,7 @@ class Assignment(object):
                 for elem in c2:
                     eq_classes[elem] = c1
         self.eq_classes = eq_classes
-    
+
     def _compute_mapping(self):
         if not self.eq_classes:
             self._compute_equivalence_classes()
@@ -62,11 +61,11 @@ class Assignment(object):
         # element in its equivalence class (with objects being
         # smaller than variables)
         mapping = {}
-        for eq_class in self.eq_classes.itervalues():
-            variables = [item for item in eq_class 
-                         if isinstance(item, pddl.Variable)]
-            constants = [item for item in eq_class 
-                         if not isinstance(item, pddl.Variable)]
+        for eq_class in self.eq_classes.values():
+            variables = [item for item in eq_class if isinstance(item, pddl.Variable)]
+            constants = [
+                item for item in eq_class if not isinstance(item, pddl.Variable)
+            ]
             if len(constants) >= 2:
                 self.consistent = False
                 self.mapping = None
@@ -95,15 +94,15 @@ class ConstraintSystem(object):
     def __init__(self):
         self.combinatorial_assignments = []
         self.neg_clauses = []
-    
+
     def __str__(self):
         combinatorial_assignments = []
         for comb_assignment in self.combinatorial_assignments:
             disj = " or ".join([str(assig) for assig in comb_assignment])
-            disj = "(%s)" % disj 
+            disj = "(%s)" % disj
             combinatorial_assignments.append(disj)
         assigs = " and\n".join(combinatorial_assignments)
-        
+
         neg_clauses = [str(clause) for clause in self.neg_clauses]
         neg_clauses = " and ".join(neg_clauses)
         return assigs + "(" + neg_clauses + ")"
@@ -115,7 +114,7 @@ class ConstraintSystem(object):
             if not clause.is_satisfiable():
                 return False
         return True
-    
+
     def _combine_assignments(self, assignments):
         new_equalities = []
         for a in assignments:
@@ -134,8 +133,9 @@ class ConstraintSystem(object):
     def combine(self, other):
         """Combines two constraint systems to a new system"""
         combined = ConstraintSystem()
-        combined.combinatorial_assignments = (self.combinatorial_assignments +
-                                              other.combinatorial_assignments)
+        combined.combinatorial_assignments = (
+            self.combinatorial_assignments + other.combinatorial_assignments
+        )
         combined.neg_clauses = self.neg_clauses + other.neg_clauses
         return combined
 
@@ -146,17 +146,17 @@ class ConstraintSystem(object):
         return other
 
     def dump(self):
-        print "AssignmentSystem:"
+        print("AssignmentSystem:")
         for comb_assignment in self.combinatorial_assignments:
             disj = " or ".join([str(assig) for assig in comb_assignment])
-            print "  ASS: ", disj
+            print("  ASS: ", disj)
         for neg_clause in self.neg_clauses:
-            print "  NEG: ", str(neg_clause)
-        
+            print("  NEG: ", str(neg_clause))
+
     def is_solvable(self):
         """Check whether the combinatorial assignments include at least
-           one consistent assignment under which the negative clauses
-           are satisfiable"""
+        one consistent assignment under which the negative clauses
+        are satisfiable"""
         for assignments in itertools.product(*self.combinatorial_assignments):
             combined = self._combine_assignments(assignments)
             if not combined.is_consistent():
@@ -164,5 +164,3 @@ class ConstraintSystem(object):
             if self._all_clauses_satisfiable(combined):
                 return True
         return False
-
-

@@ -24,18 +24,21 @@ class TimedAction(object):
         return self.__class__(self.timestamp, self.name, self.duration)
 
     def dump(self, out=None):
-        print >> out, "%.10f: (%s) [%.10f]" % (
-            self.timestamp, self.name, self.duration)
+        print(
+            "%.10f: (%s) [%.10f]" % (self.timestamp, self.name, self.duration), file=out
+        )
 
     @classmethod
     def parse(cls, line, default_timestamp):
         def bad():
             raise ValueError("cannot parse line: %r" % line)
+
         # regex = re.compile(
         #   r"\s*(.*?)\s*:\s*\(\s*(.*?)\s*\)\s*(?:\[\s*(.*?)\s*\])?$")
         ## Changed regex to work around TLP-GP issue.
         regex = re.compile(
-            r"\s*(?:(.*?)\s*:)?\s*\(\s*(.*?)\s*\)\s*(?:\[\s*(.*?)\s*\])?$")
+            r"\s*(?:(.*?)\s*:)?\s*\(\s*(.*?)\s*\)\s*(?:\[\s*(.*?)\s*\])?$"
+        )
         match = regex.match(line)
         if not match:
             bad()
@@ -75,7 +78,7 @@ class Plan(object):
                 if actions:
                     default_timestamp = actions[-1].timestamp
                 else:
-                    default_timestamp=None
+                    default_timestamp = None
                 action = TimedAction.parse(line, default_timestamp)
                 actions.append(action)
         return cls(actions)
@@ -109,8 +112,7 @@ class Plan(object):
         # first.
         self.add_separation()
         for action in sorted(self.actions, key=lambda a: a.timestamp):
-            action.timestamp = self.last_happening_before(
-                action.timestamp, action)
+            action.timestamp = self.last_happening_before(action.timestamp, action)
 
     def last_happening_before(self, time, excluded_action):
         last_happening = Decimal("0")
@@ -134,8 +136,7 @@ class Plan(object):
 def granularity(numbers):
     numbers = list(numbers)
     for power in itertools.count():
-        if all((number * 10 ** power) % 1 == 0
-               for number in numbers):
+        if all((number * 10 ** power) % 1 == 0 for number in numbers):
             return Decimal("0.1") ** power
 
 
@@ -160,17 +161,19 @@ def epsilonize(infile, outfile):
     properties["eps_val_param"] = plan.required_separation() / 2
 
     for item in sorted(properties.items()):
-        print >> outfile, "; %s: %.10f" % item
+        print("; %s: %.10f" % item, file=outfile)
     plan.dump(outfile)
 
     if orig_makespan < adjusted_makespan:
-        raise SystemExit("ERROR: Original makespan should not "
-                         "be smaller than adjusted!")
+        raise SystemExit(
+            "ERROR: Original makespan should not " "be smaller than adjusted!"
+        )
     return properties
 
 
 if __name__ == "__main__":
     import sys
+
     args = sys.argv[1:]
     if len(args) >= 3:
         raise SystemExit("usage: %s [infile [outfile]]" % sys.argv[0])
