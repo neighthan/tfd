@@ -1,0 +1,44 @@
+#! /usr/bin/env python
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+DOWNWARD_DIR = Path(__file__).resolve().parent
+
+def main(domain, problem, result_name, config, keep_files: bool = False):
+    def run(*args, **kwargs):
+        input = kwargs.pop("input", None)
+        output = kwargs.pop("output", None)
+        assert not kwargs
+        redirections = {}
+        if input:
+            redirections["stdin"] = open(input)
+        if output:
+            redirections["stdout"] = open(output, "w")
+        print(args, redirections)
+        subprocess.check_call(sum([arg.split("+") for arg in args],[]), **redirections)
+
+    os.chdir(DOWNWARD_DIR)
+    run("translate/translate.py", domain, problem)
+    run("preprocess/preprocess", input="output.sas")
+    run("search/search", config, "p", result_name, input="output")
+
+    output_dir = Path(result_name).parent
+    for fname in ["all.groups", "output", "output.sas", "variables.groups"]:
+        file = DOWNWARD_DIR / fname
+        if keep_files:
+            file.rename(output_dir / fname)
+        else:
+            file.unlink()
+
+if __name__ == "__main__":
+    if len(sys.argv) < 4:
+        print("Usage: tfd <domainFile> <problemFile> <solutionFile> [config]")
+    else:
+        domain, problem, result_name = sys.argv[1:4]
+        domain = str(Path(domain).resolve())
+        problem = str(Path(problem).resolve())
+        result_name = str(Path(result_name).resolve())
+        config = sys.argv[4] if len(sys.argv) == 5 else "y+Y+a+e+r+O+1+C+1+b"
+        main(domain, problem, result_name, config)
