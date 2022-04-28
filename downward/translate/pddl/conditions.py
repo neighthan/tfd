@@ -416,6 +416,9 @@ class QuantifiedCondition(Condition):
             and self.parts == other.parts
         )
 
+    def __hash__(self):
+        return self.hash
+
     def _dump(self, indent="  "):
         arglist = ", ".join(map(str, self.parameters))
         return "%s %s" % (self.__class__.__name__, arglist)
@@ -494,6 +497,11 @@ class ExistentialCondition(QuantifiedCondition):
 class Literal(Condition):
     parts = []
 
+    def __init__(self, predicate, args):
+        self.predicate = predicate
+        self.args = tuple(args)
+        self.hash = hash((self.__class__, self.predicate, self.args))
+
     def __eq__(self, other):
         # Compare hash first for speed reasons.
         return (
@@ -506,10 +514,8 @@ class Literal(Condition):
     def __hash__(self):
         return self.hash
 
-    def __init__(self, predicate, args):
-        self.predicate = predicate
-        self.args = tuple(args)
-        self.hash = hash((self.__class__, self.predicate, self.args))
+    def __lt__(self, other):
+        return str(self) < str(other)
 
     def __str__(self):
         return "%s %s(%s)" % (
@@ -637,6 +643,9 @@ class FunctionComparison(Condition):  # comparing numerical functions
             and self.parts == other.parts
         )
 
+    def __hash__(self):
+        return self.hash
+
     def __str__(self):
         return "%s (%s %s)" % (
             self.__class__.__name__,
@@ -715,6 +724,9 @@ class Term(object):
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.args == other.args
 
+    def __hash__(self):
+        return hash((self.__class__, self.args))
+
     def uniquify_variables(self, type_map, renamings={}):
         if not self.args:
             return self
@@ -790,8 +802,8 @@ class Variable(Term):
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.name == other.name
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
 
     def __hash__(self):
         return self.hash
@@ -819,8 +831,8 @@ class ObjectTerm(Term):
     def __eq__(self, other):
         return self.__class__ is other.__class__ and self.name == other.name
 
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
+    def __lt__(self, other):
+        return self.name < other.name
 
     def __str__(self):
         return "<%s>" % self.name

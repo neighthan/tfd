@@ -260,7 +260,6 @@ class NumericConstant(FunctionalExpression):
     def remove_duration_variable(self, action, time, duration, pnes):
         return self
 
-
 class PrimitiveNumericExpression(FunctionalExpression):
     parts = ()
 

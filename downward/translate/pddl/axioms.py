@@ -152,8 +152,8 @@ class PropositionalNumericAxiom(object):
     def __str__(self):
         return self.name
 
-    def __cmp__(self, other):
-        return cmp((self.__class__, self.name), (other.__class__, other.name))
+    def __eq__(self, other):
+        return self.__class__ == other.__class__ and self.name == other.name
 
     def __hash__(self):
         return hash((self.__class__, self.name))
