@@ -257,6 +257,9 @@ def translate_operator_duration(duration, dictionary):
     for timed_duration in duration:
         timed_sas_durations = []
         for dur in timed_duration:
+            if dur[1] not in dictionary:
+                print(dur[1])
+                print(dictionary)
             var, val = dictionary.get(dur[1])[0]
             timed_sas_durations.append(sas_tasks.SASDuration(dur[0], var))
         sas_durations.append(timed_sas_durations)

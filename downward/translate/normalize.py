@@ -502,7 +502,7 @@ def remove_duration_variable(task):
 
     for act in task.durative_actions:
         assert len(act.duration[1]) == 0, "at end durations are not supported"
-        assert len(act.duration[0]) == 1 and act.duration[0][0][0] == "="
+        assert len(act.duration[0]) == 1 and act.duration[0][0][0] == "=", "Duration inequalities are not supported."
         duration = act.duration[0][0][1]
         duration_functions = []
 

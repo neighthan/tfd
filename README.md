@@ -1,6 +1,6 @@
 # Temporal Fast Downward
 
-This is slightly modified version of TFD v0.4 (from IPC 2014).
+This is a slightly modified version of TFD v0.4 (from IPC 2014).
 
 
 > What is TFD?
@@ -31,6 +31,7 @@ downward/tfd domain_path problem_path solution_path [planner_config]
 
 You can find a several benchmark domain and problem files in the `benchmarks` directory. To test your installation, try running
 
+woodworking-numeric takes 0.01 seconds, plan takes 50 seconds
 ```
 downward/tfd benchmarks/openstacks-numericadl/domain.pddl benchmarks/openstacks-numericadl/p01.pddl plan.txt
 ```

@@ -268,7 +268,7 @@ class PrimitiveNumericExpression(FunctionalExpression):
         self.args = tuple(args)
         self.hash = hash((self.__class__, self.symbol, self.args))
 
-    def __str__(self):
+    def __repr__(self):
         return "PNE %s(%s)" % (self.symbol, ", ".join(map(str, self.args)))
 
     def __eq__(self, other):
@@ -281,6 +281,9 @@ class PrimitiveNumericExpression(FunctionalExpression):
 
     def __hash__(self):
         return self.hash
+
+    def __lt__(self, other):
+        return str(self) < str(other)
 
     def dump(self, indent="  "):
         print("%s%s" % (indent, self._dump()))

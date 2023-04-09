@@ -271,7 +271,7 @@ def parse_domain_structure(
         action = actions.Action.parse(entry)
         the_actions.append(action)
     else:
-        assert False, "unknown entity"
+        assert False, f"unknown entity:\n{entry[0]}"
 
 
 def parse_domain(domain_pddl):

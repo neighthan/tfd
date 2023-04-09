@@ -725,7 +725,7 @@ class Term(object):
         return self.__class__ is other.__class__ and self.args == other.args
 
     def __hash__(self):
-        return hash((self.__class__, self.args))
+        return hash((self.__class__, tuple(self.args)))
 
     def uniquify_variables(self, type_map, renamings={}):
         if not self.args:
